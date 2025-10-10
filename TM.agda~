@@ -1,0 +1,39 @@
+open import Data.Nat using (ℕ; zero; suc)
+open import Data.Fin using (Fin)
+open import Data.List using (List; []; _∷_; length)
+open import plfa.part1.Relations using (_<_; z<s; s<s)
+
+data move : set where
+  right : move
+  left : move
+  n-move : move
+
+
+
+data _×_×_ (a b c : set) : set where
+  ⟨_,_,_⟩ : a → b → c → a × b × c
+
+data _x_ (a b : set) : set where
+  ⟨_,_⟩ : a → b → a x b
+
+trans-fun : ℕ → ℕ → set
+trans-fun n m = fin n → fin m → ℕ
+           → ( move × fin n × fin m )
+
+data tm(n-states
+           n-symbols : ℕ)  : set where
+  tm⟨_,_,_⟩ : fin n-states → fin n-symbols → trans-fun n-states n-symbols
+              → tm n-states n-symbols
+
+
+1trans-list : {n-states n-symbols : ℕ} → (state : fin n-states)
+              → (l : List (Fin n-symbols)) → (Fin (length l))
+              → TM n-states n-symbols
+              → (Fin n-states × List (Fin n-symbols) × (Fin (suc (length l))))
+
+1trans-list s l n TM⟨ x₁ , x₂ , x₃ ⟩ = {!!}
+-- 1trans-list l tm = {!!}
+
+
+
+  

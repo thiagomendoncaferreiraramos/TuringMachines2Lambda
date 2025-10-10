@@ -1,0 +1,53 @@
+open import Data.Nat using (ℕ; zero; suc)
+open import Data.Fin using (Fin)
+open import Data.List using (List; []; _∷_; length; lookup; updateAt)
+open import plfa.part1.Relations using (_<_; z<s; s<s)
+
+data Move : Set where
+  right : Move
+  left : Move
+  n-move : Move
+
+
+
+data _×_×_ (A B C : Set) : Set where
+  ⟨_,_,_⟩ : A → B → C → A × B × C
+
+π₁ : {A B C : Set} → A × B × C → A
+π₁ ⟨ a , _ , _ ⟩ = a
+
+π₂ : {A B C : Set} → A × B × C → B
+π₂ ⟨ _ , b , _ ⟩ = b
+
+π₃ : {A B C : Set} → A × B × C → C
+π₃ ⟨ _ , _ , c ⟩ = c
+
+
+data _x_ (A B : Set) : Set where
+  ⟨_,_⟩ : A → B → A x B
+
+trans-fun : ℕ → ℕ → Set
+trans-fun n-states n-symbols = Fin n-states → Fin n-symbols
+           → ( Move × Fin n-states × Fin n-symbols )
+
+data TM(n-states
+           n-symbols : ℕ)  : Set where
+  TM⟨_,_,_⟩ : Fin n-states → Fin n-symbols → trans-fun n-states n-symbols
+              → TM n-states n-symbols
+
+
+-- moviment : Move 
+
+
+1trans-list : {n-states n-symbols : ℕ} → (state : Fin n-states)
+              → (t : List (Fin n-symbols)) → (Fin (length t))
+              → TM n-states n-symbols
+              → (Fin n-states × List (Fin n-symbols) × (Fin (suc (length t))))
+
+1trans-list state tape pos TM⟨ x₁ , x₂ , δ ⟩ =
+            {!⟨ π₂ (δ state (lookup tape pos)) , updateAt [] , Fin.zero ⟩!}
+-- 1trans-list l tm = {!!}
+
+
+
+  
