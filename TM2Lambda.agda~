@@ -1,0 +1,25 @@
+open import TM
+open import Lambda
+open import Data.Nat using (ℕ; zero; suc; ⌊_/2⌋; _+_; _*_)
+open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_⟩)
+
+ℕtoƛ-aux : ℕ → Term
+ℕtoƛ-aux zero = ` "x"
+ℕtoƛ-aux (suc n) = ` "f" · (ℕtoƛ-aux n)
+
+ℕtoƛ : ℕ → Term
+ℕtoƛ n = ƛ "f" ⇒ ƛ "x" ⇒ (ℕtoƛ-aux n)
+
+
+tuple2nat : ℕ × ℕ → ℕ
+tuple2nat ⟨ m , n ⟩ = ⌊ (m + n) * (suc (m + n)) /2⌋ + n
+
+nat2tuple : ℕ → ℕ × ℕ
+nat2tuple zero = ⟨ zero , zero ⟩
+nat2tuple (suc n) with nat2tuple n
+...                 |    ⟨ zero , n ⟩  = ⟨ suc n , zero ⟩
+...                 |    ⟨ suc m , n ⟩ = ⟨ m , suc n ⟩ 
+
+{-
+transtoƛ : {n-states}
+-}
