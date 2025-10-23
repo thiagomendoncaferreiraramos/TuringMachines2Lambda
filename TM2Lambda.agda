@@ -54,6 +54,15 @@ PRED-ƛ = ƛ "n" ⇒ ƛ "f" ⇒ ƛ "x" ⇒
 SUB-ƛ : Term
 SUB-ƛ = ƛ "m" ⇒ ƛ "n" ⇒ ` "n" · PRED-ƛ · ` "m"
 
+LEQ-ƛ : Term
+LEQ-ƛ = ƛ "m" ⇒ ƛ "n" ⇒ IS-0-ƛ · (SUB-ƛ · ` "m" · ` "n")
+
+AND-ƛ : Term
+AND-ƛ = ƛ "p" ⇒ ƛ "q" ⇒ ` "p" · ` "q" · ` "p"
+
+EQ-ƛ : Term
+EQ-ƛ = ƛ "m" ⇒ ƛ "n" ⇒ AND-ƛ · (LEQ-ƛ · ` "m" · ` "n") · (LEQ-ƛ · ` "n" · ` "m")
+
 trans-fun2ƛ-aux : {n-states n-symbols : ℕ} →
               trans-fun n-states n-symbols →
               Fin (suc (suc n-states)) → Fin (suc n-symbols)
@@ -64,15 +73,39 @@ trans-fun2ƛ-aux δ st1 sym1
 ...  | ⟨ st , inj₁ right ⟩  = PAIR-ƛ (Fin2ƛ st) RIGHT-ƛ
 ...  | ⟨ st , inj₂ sym ⟩ = PAIR-ƛ (Fin2ƛ st) (Fin2ƛ sym)
 
-δ2ƛ-aux : {n-states n-symbols : ℕ} →
-              trans-fun n-states n-symbols →
-              Fin (suc (suc n-states)) → Fin (suc n-symbols)
-              → Term
-δ2ƛ-aux δ Fin.zero Fin.zero = trans-fun2ƛ-aux δ Fin.zero Fin.zero
-δ2ƛ-aux δ (Fin.suc m) Fin.zero = {!!}
-δ2ƛ-aux δ Fin.zero (Fin.suc n) = {!!}
-δ2ƛ-aux δ (Fin.suc m) (Fin.suc n) = {!ƛ "x1" ⇒ ƛ "x2" ⇒ ITE-ƛ!}
+ℕ2Fin : {n : ℕ} → ℕ → Fin (suc n)
+ℕ2Fin zero = Fin.zero
+ℕ2Fin {zero} _ = Fin.zero
+ℕ2Fin {suc n} (suc i) = Fin.suc (ℕ2Fin {n} i)
 
+δ2ƛ-1 : {n-states n-symbols : ℕ} → trans-fun n-states n-symbols
+        → Fin (suc (suc n-states)) → ℕ
+        → Term
+δ2ƛ-1 {nst} {nsym} δ st zero = trans-fun2ƛ-aux {nst} {nsym} δ st Fin.zero
+δ2ƛ-1 δ st (suc n) = ITE-ƛ (EQ-ƛ · (ℕ2ƛ (suc n)) · ` "x")
+                     (trans-fun2ƛ-aux δ st (ℕ2Fin (suc n))) (δ2ƛ-1 δ st n)
+
+
+δ2ƛ-2 : {n-states n-symbols : ℕ} → trans-fun n-states n-symbols
+        → ℕ
+        → Term
+δ2ƛ-2 {nst} {nsym} δ zero = δ2ƛ-1 δ Fin.zero nsym
+δ2ƛ-2 {nst} {nsym} δ (suc n) = ITE-ƛ (EQ-ƛ · (ℕ2ƛ (suc n)) · ` "y")
+                               (δ2ƛ-1 δ (ℕ2Fin (suc n)) (suc nsym)) (δ2ƛ-2 δ n)
+
+
+-- Transform the transition function into a λ term:
+δ2ƛ : {n-states n-symbols : ℕ} → trans-fun n-states n-symbols
+        → Term
+
+δ2ƛ {nst} {nsym} δ = ƛ "y" ⇒ ƛ "x" ⇒ δ2ƛ-2 δ (suc (suc nst))
+
+Config2ƛ : {tm : TM} → Config tm → Term
+Config2ƛ c = {!!}
+
+
+
+-- {!!}
 
 {-
 trans-fun n-states n-symbols = Fin (suc (suc n-states)) → Fin (suc n-symbols)
