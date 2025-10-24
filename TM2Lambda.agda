@@ -21,6 +21,7 @@ PAIR-ƛ : Term → Term → Term
 PAIR-ƛ m n = ƛ "f" ⇒ ` "f" · m · n
 
 
+
 List2ƛ : {S : Set} → List S → (S → Term) → Term
 List2ƛ [] _ =  NIL-ƛ
 List2ƛ (x ∷ xs) fl = PAIR-ƛ (fl x) (List2ƛ xs fl)
@@ -37,11 +38,20 @@ TRUE-ƛ = ƛ "x" ⇒ ƛ "y" ⇒ ` "x"
 FALSE-ƛ : Term
 FALSE-ƛ = ƛ "x" ⇒ ƛ "y" ⇒ ` "y"
 
+IS-NIL-ƛ : Term
+IS-NIL-ƛ = ƛ "p" ⇒ ` "p" · (ƛ "x" ⇒ ƛ "y" ⇒ FALSE-ƛ)
+
 RIGHT-ƛ : Term
 RIGHT-ƛ = PAIR-ƛ NIL-ƛ TRUE-ƛ
 
 LEFT-ƛ : Term
 LEFT-ƛ = PAIR-ƛ NIL-ƛ FALSE-ƛ
+
+FST-ƛ : Term
+FST-ƛ = ƛ "p" ⇒ ` "p" · TRUE-ƛ
+
+SND-ƛ : Term
+SND-ƛ = ƛ "p" ⇒ ` "p" · FALSE-ƛ
 
 IS-0-ƛ : Term
 IS-0-ƛ = ƛ "n" ⇒ ` "n" · (ƛ "x" ⇒ FALSE-ƛ ) · TRUE-ƛ
@@ -101,7 +111,33 @@ trans-fun2ƛ-aux δ st1 sym1
 δ2ƛ {nst} {nsym} δ = ƛ "y" ⇒ ƛ "x" ⇒ δ2ƛ-2 δ (suc (suc nst))
 
 Config2ƛ : {tm : TM} → Config tm → Term
-Config2ƛ c = {!!}
+Config2ƛ ⟨ l1 ! st ! l2 ⟩   = PAIR-ƛ (List2ƛ l1 Fin2ƛ) (PAIR-ƛ (Fin2ƛ st)
+                                       (List2ƛ l2 Fin2ƛ))
+
+
+-- Selecting the new state and direction from "x"
+δ-Config-aux : {n-states n-symbols : ℕ} → trans-fun n-states n-symbols
+        → Term
+δ-Config-aux δ = (δ2ƛ δ) · (FST-ƛ · (SND-ƛ · ` "x")) ·
+                       (FST-ƛ · (SND-ƛ · (SND-ƛ · ` "x")))
+
+
+δ-Config : {n-states n-symbols : ℕ} → trans-fun n-states n-symbols
+        → Term
+δ-Config δ = ITE-ƛ (IS-NIL-ƛ · (FST-ƛ · (SND-ƛ · (δ-Config-aux δ))))
+                    (ITE-ƛ (SND-ƛ · (SND-ƛ · (δ-Config-aux δ)))
+                           (PAIR-ƛ (PAIR-ƛ (SND-ƛ · (SND-ƛ · ` "x"))
+                                           (FST-ƛ · ` "x"))
+                                   (PAIR-ƛ (FST-ƛ · (δ-Config-aux δ))
+                                           (SND-ƛ · (SND-ƛ · (SND-ƛ · ` "x")))))
+                           (PAIR-ƛ (SND-ƛ · (FST-ƛ · ` "x"))
+                                   (PAIR-ƛ (FST-ƛ · (δ-Config-aux δ))
+                                           (PAIR-ƛ (FST-ƛ · (FST-ƛ · ` "x"))
+                                                   (SND-ƛ · (SND-ƛ · ` "x"))))))
+                    (PAIR-ƛ (FST-ƛ · ` "x")
+                            (PAIR-ƛ (FST-ƛ · (δ-Config-aux δ))
+                                    (PAIR-ƛ (SND-ƛ · (δ-Config-aux δ))
+                                            (SND-ƛ · (SND-ƛ · (SND-ƛ · ` "x"))))))
 
 
 
