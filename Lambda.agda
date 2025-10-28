@@ -49,6 +49,22 @@ data _⋙_ : Term → Term → Set where
          --------------------
          → M · N ⋙ M · N'
 
+infix 4 _⋙*_
+
+data _⋙*_ : Term → Term → Set where
+  ⋙1-step : {M N : Term}
+            → M ⋙ N
+            → M ⋙* N
+            
+  ⋙-refl : {M : Term}
+           → M ⋙* M
+           
+  ⋙-trans : {M N P : Term}
+            → M ⋙* N
+            → N ⋙* P
+            -----------------
+            → M ⋙* P
+
 1reduction : Term → Term
 
 1reduction ((ƛ x ⇒ M) · N) = (1reduction M) [ x := (1reduction N)]

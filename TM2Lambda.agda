@@ -5,6 +5,8 @@ open import Data.Product using (_×_; proj₁; proj₂) renaming (_,_ to ⟨_,_�
 open import Data.List using (List; []; _∷_; [_])
 open import Data.Fin using (Fin; inject₁; fromℕ; toℕ)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; cong)
 
 ℕ2ƛ-aux : ℕ → Term
 ℕ2ƛ-aux zero = ` "x"
@@ -141,7 +143,93 @@ Config2ƛ ⟨ l1 ! st ! l2 ⟩   = PAIR-ƛ (List2ƛ l1 Fin2ƛ) (PAIR-ƛ (Fin2ƛ 
 
 
 
--- {!!}
+tmƛ-Rel : TM → Term
+tmƛ-Rel TM⟨ _ , _ , δ ⟩ = ƛ "x" ⇒ (ITE-ƛ (IS-NIL-ƛ · (FST-ƛ · ` "x"))
+                         (PAIR-ƛ (List2ƛ [ zero ] ℕ2ƛ) (SND-ƛ · ` "x"))
+                         (ITE-ƛ (IS-NIL-ƛ · (SND-ƛ · (SND-ƛ · ` "x")))
+                                (PAIR-ƛ (FST-ƛ · ` "x")
+                                        (PAIR-ƛ (SND-ƛ · (FST-ƛ · ` "x"))
+                                              (List2ƛ [ zero ] ℕ2ƛ)))
+                                (δ-Config δ)))
+
+
+G : TM → Term
+G tm = ƛ "r" ⇒ ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             (` "r" · ` "r" · ((tmƛ-Rel tm) · ` "x"))
+
+
+tm-sim : TM → Term
+tm-sim tm = (G tm) · (G tm)
+
+
+-- ITE-ƛ[] : 
+
+
+equiv1 : ∀(tm : TM) →
+
+               ((ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             (` "r" · ` "r" · ((tmƛ-Rel tm) · ` "x"))) [ "r" := (G tm)]) ≡ (ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             ((G tm) · (G tm) · ((tmƛ-Rel tm) · ` "x")))
+
+equiv1 tm  = {!!}
+
+refl-clos-sim4 : ∀(tm : TM) → ∀ (l1 l2 : List (Fin (suc (tm-Symbols tm)))) →
+
+               ((ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             (` "r" · ` "r" · ((tmƛ-Rel tm) · ` "x"))) [ "r" := (G tm)]) ≡ (ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             ((G tm) · (G tm) · ((tmƛ-Rel tm) · ` "x"))) →
+              
+              ((ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             (` "r" · ` "r" · ((tmƛ-Rel tm) · ` "x"))) [ "r" := (G tm)]) · Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩ ⋙*
+             (ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             ((G tm) · (G tm) · ((tmƛ-Rel tm) · ` "x"))) · Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩
+refl-clos-sim4 tm l1 l2 rel rewrite cong (_· Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩) rel = ⋙-refl 
+
+
+refl-clos-sim3 : ∀(tm : TM) → ∀ (l1 l2 : List (Fin (suc (tm-Symbols tm)))) → 
+              (ƛ "r" ⇒ ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             (` "r" · ` "r" · ((tmƛ-Rel tm) · ` "x"))) · (G tm) · Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩ ⋙*
+              ((ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             (` "r" · ` "r" · ((tmƛ-Rel tm) · ` "x"))) [ "r" := (G tm)]) · Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩
+refl-clos-sim3 tm l1 l2 = ⋙1-step (β-left β)
+
+
+refl-clos-sim2 : ∀(tm : TM) → ∀ (l1 l2 : List (Fin (suc (tm-Symbols tm)))) → 
+              (ƛ "r" ⇒ ƛ "x" ⇒ ITE-ƛ (EQ-ƛ · (FST-ƛ · (SND-ƛ · ` "x")) · (ℕ2ƛ 1))
+                             (` "x")
+                             (` "r" · ` "r" · ((tmƛ-Rel tm) · ` "x"))) · (G tm) · Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩ ⋙*
+              Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩
+refl-clos-sim2 tm l1 l2 = {!!}
+
+refl-clos-sim1 : ∀(tm : TM) → ∀ (l1 l2 : List (Fin (suc (tm-Symbols tm)))) → 
+              (G tm) · (G tm) · Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩ ⋙*
+              Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩
+
+refl-clos-sim1 tm l1 l2 = refl-clos-sim2 tm l1 l2
+
+
+refl-clos-sim : ∀(tm : TM) → ∀ (l1 l2 : List (Fin (suc (tm-Symbols tm)))) → 
+              tm-sim tm · Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩ ⋙*
+              Config2ƛ {tm} ⟨ l1 ! Fin.suc Fin.zero ! l2 ⟩
+
+refl-clos-sim tm l1 l2 = refl-clos-sim1 tm l1 l2
+
+lambda-sim-tm : ∀(tm : TM) → ∀(config1 config2 : Config tm)
+                → ▹* tm config1 config2 × Halt tm config2 →
+                (tm-sim tm) · (Config2ƛ {tm} config1) ⋙* (Config2ƛ {tm} config2)
+
+lambda-sim-tm tm config1 config2 ⟨ refl-clos , halt ⟩ = {!!}
+lambda-sim-tm tm config1 config2 ⟨ one-step x , snd ⟩ = {!!}
+lambda-sim-tm tm config1 config2 ⟨ trans-clos fst fst₁ , snd ⟩ = {!!}
 
 {-
 trans-fun n-states n-symbols = Fin (suc (suc n-states)) → Fin (suc n-symbols)
